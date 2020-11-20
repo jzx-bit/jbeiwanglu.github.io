@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一个待办事项列表</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+            background: #CDCDCD;
+        }
+        
+        header {
+            height: 50px;
+            background: #333;
+            background: rgba(47, 47, 47, 0.98);
+        }
+        
+        section {
+            margin: 0 auto;
+        }
+        
+        label {
+            float: left;
+            width: 100px;
+            line-height: 50px;
+            color: #DDD;
+            font-size: 24px;
+            cursor: pointer;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        
+        header input {
+            float: right;
+            width: 60%;
+            height: 24px;
+            margin-top: 12px;
+            text-indent: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.24), 0 1px 6px rgba(0, 0, 0, 0.45) inset;
+            border: none
+        }
+        
+        input:focus {
+            outline-width: 0
+        }
+        
+        h2 {
+            position: relative;
+        }
+        
+        span {
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            display: inline-block;
+            padding: 0 5px;
+            height: 20px;
+            border-radius: 20px;
+            background: #E6E6FA;
+            line-height: 22px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        ol,
+        ul {
+            padding: 0;
+            list-style: none;
+        }
+        
+        li input {
+            position: absolute;
+            top: 2px;
+            left: 10px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        p {
+            margin: 0;
+        }
+        
+        li p input {
+            top: 3px;
+            left: 40px;
+            width: 70%;
+            height: 20px;
+            line-height: 14px;
+            text-indent: 5px;
+            font-size: 14px;
+        }
+        
+        li {
+            height: 32px;
+            line-height: 32px;
+            background: #fff;
+            position: relative;
+            margin-bottom: 10px;
+            padding: 0 45px;
+            border-radius: 3px;
+            border-left: 5px solid #629A9C;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+        }
+        
+        ol li {
+            cursor: move;
+        }
+        
+        ul li {
+            border-left: 5px solid #999;
+            opacity: 0.5;
+        }
+        
+        li a {
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            display: inline-block;
+            width: 14px;
+            height: 12px;
+            border-radius: 14px;
+            border: 6px double #FFF;
+            background: #CCC;
+            line-height: 14px;
+            text-align: center;
+            color: #FFF;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        footer {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        footer a {
+            color: #666;
+            text-decoration: none;
+            color: #999;
+        }
+        
+        @media screen and (max-device-width: 620px) {
+            section {
+                width: 96%;
+                padding: 0 2%;
+            }
+        }
+        
+        @media screen and (min-width: 620px) {
+            section {
+                width: 600px;
+                padding: 0 10px;
+            }
+        }
+        
+        li a {
+            list-style: none;
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            display: inline-block;
+            width: 14px;
+            height: 12px;
+            border-radius: 14px;
+            border: 6px double #FFF;
+            background: #CCC;
+            line-height: 14px;
+            text-align: center;
+            color: #FFF;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="1.js"></script>
+    <script>
+        $(function() {
+            //先执行一次load函数
+            load();
+            //判断文本框是否有内容
+
+            $("#title").on("keydown", function(e) {
+                    if (e.which == 13) {
+                        if ($("#title").val()) {
+                            var gd = getData();
+                            gd.push({
+                                title: $(this).val(),
+                                done: false
+                            });
+                            saveData(gd);
+                            $(this).val("");
+                            load();
+                        } else {
+                            alert("请输入内容")
+                        }
+                    }
+                })
+                //当点击删除a的时候删除改事情
+                //动态生成所以用事件委托
+            $("ol,ul").on("click", "a", function() {
+                    //得到数据
+                    var data = getData();
+                    //删除数据
+                    //获取索引号
+                    var index = $(this).attr("id");
+                    data.splice(index, 1);
+                    console.log(data);
+                    saveData(data);
+                    load();
+                })
+                //点击复选框进行完成操作
+            $("ol,ul").on("change", "input", function() {
+                var data = getData();
+                var index = $(this).siblings("a").attr("id");
+                data[index].done = $(this).prop("checked");
+                saveData(data);
+                load();
+
+            })
+
+            function getData() {
+                var data = localStorage.getItem("todolist");
+                if (data !== null) {
+                    // 取出字符串要转换为数组对象
+                    return JSON.parse(data);
+                } else {
+                    return [];
+                }
+            }
+            //封装一个存储localStorage的函数
+            function saveData(data) {
+                //注意localstorage以字符串形式存储
+                localStorage.setItem("todolist", JSON.stringify(data))
+            }
+            //封装一个load函数渲染数据
+            function load() {
+                //遍历之前清空ol里面的li
+                $("ol").empty();
+                $("ul").empty();
+                //获取本地存储数据
+                var data = getData();
+                var todoCount = 0;
+                var doneCount = 0;
+                //遍历数据
+                $.each(data, function(i, n) {
+                    if (n.done) {
+                        //给ul添加子节点
+                        $("ul").prepend("<li><input type='checkbox' checked='checked'><p>" + n.title + "</p><a href='javascript:;' id=" + i + "></a></li>")
+                        doneCount++;
+                    } else {
+                        //给ol添加子节点
+                        $("#todolist").prepend("<li><input type='checkbox'><p>" + n.title + "</p><a href='javascript:;' id=" + i + "></a></li>")
+                        todoCount++;
+                    }
+                });
+                $("#todocount").text(todoCount);
+                $("#donecount").text(doneCount);
+            }
+        })
+    </script>
+</head>
+
+<body>
+    <header>
+        <section>
+            <label for="title">ToDoList</label>
+            <input type="text" id="title" name="title" placeholder="添加ToDo">
+        </section>
+    </header>
+    <section>
+        <h2>正在进行 <span id="todocount"></span></h2>
+        <ol id="todolist" class="demo-box">
+
+        </ol>
+        <h2>已经完成 <span id="donecount"></span></h2>
+        <ul id="donelist">
+        </ul>
+    </section>
+
+</body>
+
+</html>
